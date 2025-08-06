@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kartu Ucapan Animasi Interaktif Penuh</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Menggunakan gambar yang diunggah sebagai background */
+            background-image: url('30398e43-7462-4686-a519-8cf443dd6e2d.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Mencegah scrolling selama animasi */
+            position: relative;
+        }
+
+        /* General styling for all containers */
+        .screen-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            position: absolute; /* Memungkinkan tumpang tindih dan kontrol JS */
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .screen-container.active {
+            opacity: 1;
+            transform: translateY(0);
+            z-index: 10; /* Memastikan layar aktif berada di atas */
+        }
+
+        .screen-container.hidden {
+            display: none;
+        }
+
+        .screen-container h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .screen-container p {
+            font-size: 1rem;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap; /* Untuk banyak tombol di ponsel */
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .button-group button {
+            background-color: #FF69B4; /* Pink cerah */
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-group button:hover {
+            background-color: #e05c9f; /* Pink lebih gelap */
+            transform: translateY(-2px);
+        }
+
+        .button-group button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .screen-container input[type="text"] {
+            width: calc(100% - 40px); /* Padding 20px kiri dan kanan */
+            padding: 12px 20px;
+            margin-top: 15px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .screen-container input[type="text"]:focus {
+            border-color: #FF69B4;
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.3);
+        }
+
+        /* Styling for the Happy Level Up Day card (final card) */
+        #happyLevelUpCard .profile-bubble {
+            width: 80px;
+            height: 80px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: -40px; /* Setengah tinggi bubble untuk memusatkan */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        #happyLevelUpCard .profile-bubble img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        #happyLevelUpCard .text-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        #happyLevelUpCard .text-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        #happyLevelUpCard .text-footer {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #777;
+            margin-top: 20px;
+        }
+
+        #happyLevelUpCard .happy-level-up {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #FF69B4; /* Warna pink cerah */
+            margin-top: 25px;
+            animation: pulse 1.5s infinite; /* Animasi berdenyut */
+        }
+
+        /* Styling for pop-up messages (kepoMessage and feedbackMessage) */
+        .popup-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            z-index: 100;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Keyframe Animations */
+        @keyframes fadeInSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeOutSlideDown {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) scale(1);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Styling for the draggable bubble */
+        #dragBubble {
+            cursor: grab;
+            user-select: none;
+            display: inline-flex; /* Gunakan flex untuk memusatkan konten */
+            align-items: center;
+            justify-content: center;
+            padding: 15px 30px;
+            margin-top: 30px;
+            background-color: #FFD1DC; /* Latar belakang pink muda */
+            border-radius: 30px; /* Lebih bulat, seperti bubble */
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #FF69B4;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            position: relative; /* Untuk menyeret */
+            left: 0; /* Posisi awal */
+        }
+
+        #dragBubble:active {
+            cursor: grabbing;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Styling for the final animated screen */
+        #finalAnimationScreen {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            position: absolute;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #finalAnimationScreen.active {
+            opacity: 1;
+            transform: translateY(0);
+            z-index: 10;
+        }
+
+        #finalAnimationScreen .character-image {
+            width: 150px; /* Sesuaikan ukuran sesuai kebutuhan */
+            height: 150px;
+            object-fit: contain;
+            margin-bottom: 20px;
+            /* Initial state for animation */
+            transform: translateY(100vh) scale(0.5);
+            opacity: 0;
+        }
+
+        #finalAnimationScreen .love-text {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #FF69B4; /* Pink */
+            /* Initial state for animation */
+            transform: scale(0.8);
+            opacity: 0;
+        }
+
+        /* Keyframes for new animations */
+        @keyframes slideUpFloat {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            70% { transform: translateY(-20px) scale(1.05); opacity: 1; } /* Sedikit overshoot */
+            100% { transform: translateY(0) scale(1); opacity: 1; } /* Settle */
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes fadeInScale {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Apply animations when screen is active */
+        #finalAnimationScreen.active .character-image {
+            animation: slideUpFloat 1.5s ease-out forwards, float 3s ease-in-out infinite 1.5s;
+        }
+
+        #finalAnimationScreen.active .love-text {
+            animation: fadeInScale 1.5s forwards;
+            animation-delay: 1.5s; /* Mulai setelah animasi karakter sebagian besar selesai */
+        }
+
+        /* NEW: Animations for intro message */
+        #introMessage h2 {
+            opacity: 0;
+            transform: scale(0.8);
+            animation: fadeInScale 1s forwards;
+            animation-delay: 0.5s;
+        }
+
+        #introMessage p {
+            opacity: 0;
+            transform: scale(0.8);
+            animation: fadeInScale 1s forwards;
+            animation-delay: 1.5s; /* Delay setelah h2 muncul */
+        }
+
+
+        /* Responsiveness */
+        @media (max-width: 640px) {
+            .screen-container, .popup-message, #finalAnimationScreen {
+                padding: 20px;
+                max-width: 95%;
+            }
+            .screen-container h2 {
+                font-size: 1.5rem;
+            }
+            .screen-container p {
+                font-size: 0.95rem;
+            }
+            .button-group button {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+            #happyLevelUpCard .profile-bubble {
+                width: 70px;
+                height: 70px;
+                top: -35px;
+            }
+            #happyLevelUpCard .profile-bubble img {
+                width: 60px;
+                height: 60px;
+            }
+            #happyLevelUpCard .text-header {
+                font-size: 1rem;
+            }
+            #happyLevelUpCard .text-content {
+                font-size: 0.9rem;
+            }
+            #happyLevelUpCard .happy-level-up {
+                font-size: 1.1rem;
+            }
+            .popup-message {
+                font-size: 1rem;
+            }
+            #dragBubble {
+                font-size: 1.3rem;
+                padding: 12px 25px;
+            }
+            #finalAnimationScreen .character-image {
+                width: 100px;
+                height: 100px;
+            }
+            #finalAnimationScreen .love-text {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. Intro message -->
+    <div id="introMessage" class="screen-container active">
+        <h2>Selamat datang!</h2>
+        <p>Memuat pesan spesial untukmu...</p>
+    </div>
+
+    <!-- 2. Name input screen -->
+    <div id="nameInputScreen" class="screen-container hidden">
+        <h2>Ketik nama kamu</h2>
+        <input type="text" id="userNameInput" placeholder="Nama kamu...">
+        <div class="button-group">
+            <button id="nameSubmitButton">Lanjut</button>
+        </div>
+    </div>
+
+    <!-- 3. Is it Cinta's boyfriend? -->
+    <div id="initialQuestion" class="screen-container hidden">
+        <h2 id="cintaQuestionText">Apakah kamu pacarnya Cinta imupp?</h2>
+        <div class="button-group">
+            <button id="yesButton">Yes</button>
+            <button id="noButton">No</button>
+        </div>
+    </div>
+
+    <!-- 3.1 Alternative message if "No" is selected -->
+    <div id="noMessage" class="screen-container hidden">
+        <h2>Hemm sepertinya ada kesalahan.</h2>
+        <p id="noMessageText">Silakan coba lagi.</p>
+        <div class="button-group">
+            <button id="noRetryButton">No</button>
+        </div>
+    </div>
+
+    <!-- 3.2 How much do you know about Cinta? -->
+    <div id="cintaKnowledgeScreen" class="screen-container hidden">
+        <h2>Seberapa kamu tahu tentang Cinta?</h2>
+        <div class="button-group">
+            <button id="sukaNangisButton">Suka nangis</button>
+            <button id="bodoamatanButton">Bodoamatan</button>
+            <button id="sangatCeriaButton">Sangat ceria</button>
+        </div>
+    </div>
+
+    <!-- Feedback message for Cinta knowledge and birthday questions -->
+    <div id="feedbackMessage" class="popup-message hidden">
+        <!-- Content will be filled by JavaScript -->
+    </div>
+
+    <!-- 4. Cinta's birthday question -->
+    <div id="birthdayQuestionScreen" class="screen-container hidden">
+        <h2>Berapa tanggal lahir Cinta?</h2>
+        <div class="button-group">
+            <button id="date8Button">8</button>
+            <button id="date17Button">17</button>
+        </div>
+    </div>
+
+    <!-- 5. Lucky message screen -->
+    <div id="luckyMessageScreen" class="screen-container hidden">
+        <h2>Selamat anda beruntung banget memiliki cewek se imut Cinta!</h2>
+        <p>Bersiap untuk kejutan selanjutnya...</p>
+    </div>
+
+    <!-- 6. Cinta has something for my darling (THIS SCREEN HAS A DRAGGABLE BUBBLE) -->
+    <div id="cintaSomethingScreen" class="screen-container hidden">
+        <h2>Cinta ada sesuatu buat sayangku!</h2>
+        <div id="dragBubble" style="left: 0;">Geser 👉</div>
+    </div>
+
+    <!-- 7. Are you curious? -->
+    <div id="curiosityQuestionScreen" class="screen-container hidden">
+        <h2>Kamu kepo yaa?</h2>
+        <div class="button-group">
+            <button id="kepoAjaButton">Kepo aja</button>
+            <button id="kepoBangetButton">Kepo banget</button>
+        </div>
+    </div>
+
+    <!-- 7.1 "Are you sure you're not curious?" message -->
+    <div id="kepoMessage" class="popup-message hidden">
+        Yakin ga kepo nichh?
+    </div>
+
+    <!-- 8. Birthday greeting card -->
+    <div id="happyLevelUpCard" class="screen-container hidden">
+        <!-- New title above the card -->
+        <h2 class="text-2xl font-bold text-pink-700 mb-6">INII DIAA SESUATU BUAT KAMU</h2>
+        <div class="profile-bubble">
+            <img src="https://placehold.co/70x70/FFC0CB/FFFFFF?text=💖" alt="Profile"> <!-- Placeholder for profile image -->
+        </div>
+        <div class="message-card">
+            <p class="text-header">Happy birthday Agus ini kamu ulang tahun ya 🎉</p>
+            <p class="text-content">
+                Selamat bertambah usia sehat selalu, panjang umur makin sabar lagi ya hehe doa terbaik untukmu semoga di umur sekarang semesta berpihak ya sama kamu semoga bisa dapetin hal yang selama ini di perjuangin, semoga bahagia dan semoga itu selamanya my beat wishes for you
+            </p>
+            <p class="text-footer">Dari Cinta yang selalu menyayangimu.</p>
+            <!-- New closing message -->
+            <p class="text-footer mt-4 text-pink-600 font-bold">Jangan sedih lagii ya sayangkuu, akuu selaluu disini menemanimuu</p>
+        </div>
+    </div>
+
+    <!-- New screen: "lanjutt nihhh...." -->
+    <div id="continueMessageScreen" class="screen-container hidden">
+        <h2>Lanjutt nihhh....</h2>
+        <p>Ada lagi pesan untukmu!</p>
+    </div>
+
+    <!-- New screen: "sayangkuu jangan bersedihh yaaa..." -->
+    <div id="comfortMessageScreen" class="screen-container hidden">
+        <h2>TERUSS SAMA AKUU YAA😠😠</h2>
+        <p></p> <!-- Paragraf ini sekarang kosong karena semua teks digabung ke h2 -->
+    </div>
+
+    <!-- Final animated screen with character and "loveee youuuuuuu sayanggggg" -->
+    <div id="finalAnimationScreen" class="screen-container hidden">
+        <!-- Menggunakan gambar GIF yang diunggah -->
+        <img src="download.gif" alt="Cute Animated Character" class="character-image">
+        <p class="love-text">loveee youuuuuuu sayanggggg</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get all screen elements
+            const introMessage = document.getElementById('introMessage');
+            const nameInputScreen = document.getElementById('nameInputScreen');
+            const userNameInput = document.getElementById('userNameInput');
+            const nameSubmitButton = document.getElementById('nameSubmitButton');
+            const initialQuestion = document.getElementById('initialQuestion');
+            const cintaQuestionText = document.getElementById('cintaQuestionText');
+            const yesButton = document.getElementById('yesButton');
+            const noButton = document.getElementById('noButton');
+            const noMessage = document.getElementById('noMessage');
+            const noMessageText = document.getElementById('noMessageText');
+            const noRetryButton = document.getElementById('noRetryButton');
+            const cintaKnowledgeScreen = document.getElementById('cintaKnowledgeScreen');
+            const sukaNangisButton = document.getElementById('sukaNangisButton');
+            const bodoamatanButton = document.getElementById('bodoamatanButton');
+            const sangatCeriaButton = document.getElementById('sangatCeriaButton');
+            const feedbackMessage = document.getElementById('feedbackMessage');
+            const birthdayQuestionScreen = document.getElementById('birthdayQuestionScreen');
+            const date8Button = document.getElementById('date8Button');
+            const date17Button = document.getElementById('date17Button');
+            const luckyMessageScreen = document.getElementById('luckyMessageScreen');
+            const cintaSomethingScreen = document.getElementById('cintaSomethingScreen');
+            const dragBubble = document.getElementById('dragBubble');
+            const curiosityQuestionScreen = document.getElementById('curiosityQuestionScreen');
+            const kepoAjaButton = document.getElementById('kepoAjaButton');
+            const kepoBangetButton = document.getElementById('kepoBangetButton');
+            const kepoMessage = document.getElementById('kepoMessage');
+            const happyLevelUpCard = document.getElementById('happyLevelUpCard');
+            const continueMessageScreen = document.getElementById('continueMessageScreen');
+            const comfortMessageScreen = document.getElementById('comfortMessageScreen');
+            const finalAnimationScreen = document.getElementById('finalAnimationScreen'); // New final screen
+
+            let userName = "Sayangkuu"; // Default name if not entered
+            let noClickCount = 0; // Counter for 'No' button clicks
+            const minDragDistance = 100; // Minimum pixels to drag right to trigger next screen
+
+            // Function to show a screen with fade-in animation
+            function showScreen(screenElement, delay = 0) {
+                // Sembunyikan semua layar lain terlebih dahulu
+                document.querySelectorAll('.screen-container').forEach(screen => {
+                    if (screen !== screenElement && screen.classList.contains('active')) {
+                        screen.classList.remove('active');
+                        screen.style.animation = 'fadeOutSlideDown 0.5s forwards';
+                        // Pastikan tersembunyi setelah animasi selesai
+                        screen.addEventListener('animationend', function handler() {
+                            screen.classList.add('hidden');
+                            screen.style.animation = ''; // Hapus gaya animasi
+                            screen.removeEventListener('animationend', handler);
+                        }, { once: true });
+                    }
+                });
+
+                // Tampilkan layar target
+                setTimeout(() => {
+                    screenElement.classList.remove('hidden');
+                    // Paksa reflow untuk memastikan animasi dimulai dari status awal yang benar
+                    screenElement.offsetWidth; // Memicu reflow
+                    screenElement.style.animation = 'fadeInSlideUp 1s forwards';
+                    screenElement.classList.add('active');
+                    // Reset transform untuk bubble yang dapat diseret saat layar induknya menjadi aktif
+                    if (screenElement.id === 'cintaSomethingScreen') {
+                        dragBubble.style.transform = 'translateX(0px)'; // Reset posisi bubble
+                        dragBubble.style.transition = 'none'; // Nonaktifkan transisi untuk respons seret segera
+                    }
+
+                    // --- LOGIKA UNTUK LAYAR BERURUTAN ---
+                    if (screenElement.id === 'luckyMessageScreen') {
+                        setTimeout(() => {
+                            showScreen(cintaSomethingScreen); // Transisi ke "Cinta ada sesuatu buat sayangku!"
+                        }, 3000); // Tampilkan pesan keberuntungan selama 3 detik sebelum lanjut
+                    } else if (screenElement.id === 'happyLevelUpCard') {
+                        setTimeout(() => {
+                            showScreen(continueMessageScreen); // Transisi ke "lanjutt nihhh...."
+                        }, 5000); // Tampilkan kartu ulang tahun selama 5 detik
+                    } else if (screenElement.id === 'continueMessageScreen') {
+                        setTimeout(() => {
+                            showScreen(comfortMessageScreen); // Transisi ke "sayangkuu jangan bersedihh..."
+                        }, 3000); // Tampilkan "lanjutt nihhh" selama 3 detik
+                    } else if (screenElement.id === 'comfortMessageScreen') {
+                        setTimeout(() => {
+                            showScreen(finalAnimationScreen); // Transisi ke layar animasi akhir yang baru
+                        }, 3000); // Tampilkan pesan kenyamanan selama 3 detik
+                    }
+                    // --- AKHIR LOGIKA ---
+
+                }, delay);
+            }
+
+            // Function to show a temporary feedback message
+            function showFeedback(message, isCorrect, callback) {
+                feedbackMessage.textContent = message;
+                feedbackMessage.style.color = isCorrect ? '#28a745' : '#dc3545'; // Hijau untuk benar, merah untuk salah
+                feedbackMessage.classList.remove('hidden');
+                feedbackMessage.style.animation = 'fadeIn 0.5s forwards';
+
+                setTimeout(() => {
+                    feedbackMessage.style.animation = 'fadeOut 0.5s forwards';
+                    setTimeout(() => {
+                        feedbackMessage.classList.add('hidden');
+                        if (callback) callback(); // Panggil langkah selanjutnya setelah feedback memudar
+                    }, 500);
+                }, 1500); // Tampilkan feedback selama 1.5 detik
+            }
+
+
+            // --- Flow Logic ---
+
+            // 1. Initial Intro Message
+            // Tidak ada panggilan showScreen langsung di sini, karena animasi pada h2 dan p akan secara implisit membuatnya terlihat
+            // Transisi layar berikutnya ditangani oleh animation-delay pada elemen introMessage
+            setTimeout(() => {
+                showScreen(nameInputScreen); // Transisi ke input nama setelah animasi intro selesai
+            }, 3000); // Total delay untuk pesan intro (delay h2 + delay p + durasi animasi)
+
+
+            // 2. Name Input Screen
+            nameSubmitButton.addEventListener('click', () => {
+                const inputName = userNameInput.value.trim();
+                if (inputName) {
+                    userName = inputName;
+                }
+                // Perbarui teks pertanyaan dengan nama pengguna
+                cintaQuestionText.innerHTML = `Apakah kamu pacarnya Cinta imupp?`;
+                showScreen(initialQuestion);
+            });
+
+            userNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    nameSubmitButton.click();
+                }
+            });
+
+            // 3. Cinta Question
+            yesButton.addEventListener('click', () => {
+                // Reset noClickCount dan pastikan noButton terlihat untuk interaksi di masa mendatang
+                noClickCount = 0;
+                noButton.classList.remove('hidden');
+                showScreen(cintaKnowledgeScreen);
+            });
+
+            noButton.addEventListener('click', () => {
+                noClickCount++;
+                if (noClickCount === 1) {
+                    noMessageText.textContent = "Silakan coba lagi.";
+                    showScreen(noMessage);
+                } else if (noClickCount >= 2) { // Jika 'No' diklik 2 kali atau lebih
+                    showScreen(initialQuestion); // Kembali ke layar pertanyaan awal
+                    cintaQuestionText.textContent = "Harus ketik \"Yes\"!";
+                    noButton.classList.add('hidden'); // Sembunyikan tombol 'No'
+                }
+            });
+
+            noRetryButton.addEventListener('click', () => {
+                // Tombol ini diklik setelah 'No' pertama dari initialQuestion
+                noClickCount++; // Ini akan membuat noClickCount = 2
+                // Paksa 'Yes'
+                showScreen(initialQuestion); // Kembali ke layar pertanyaan awal
+                cintaQuestionText.textContent = "Harus ketik \"Yes\"!";
+                noButton.classList.add('hidden'); // Sembunyikan tombol 'No' pada initialQuestion
+            });
+
+            // 3.2 Cinta Knowledge Screen
+            sukaNangisButton.addEventListener('click', () => {
+                showFeedback("Selamat jawaban anda benar", true, () => {
+                    showScreen(birthdayQuestionScreen);
+                });
+            });
+
+            bodoamatanButton.addEventListener('click', () => {
+                showFeedback("Salahh, cinta itu orangnya sangat pedulii", false, () => {
+                    showScreen(birthdayQuestionScreen);
+                });
+            });
+
+            sangatCeriaButton.addEventListener('click', () => {
+                showFeedback("Selamat jawaban anda benar", true, () => {
+                    showScreen(birthdayQuestionScreen);
+                });
+            });
+
+            // 4. Birthday Question Screen
+            date8Button.addEventListener('click', () => {
+                showFeedback("Yeyy benar!", true, () => { // Menambahkan feedback untuk jawaban yang benar
+                    showScreen(luckyMessageScreen); // Jawaban benar, lanjutkan
+                });
+            });
+
+            date17Button.addEventListener('click', () => {
+                showFeedback("Salah! Coba lagi.", false, () => {
+                    // Tetap di layar pertanyaan ulang tahun
+                    // Tidak perlu memanggil showScreen(birthdayQuestionScreen) lagi karena sudah aktif
+                });
+            });
+
+            // 5. Lucky Message Screen
+            // Layar ini sekarang secara otomatis bertransisi ke cintaSomethingScreen setelah penundaan
+            // Transisi ditangani oleh fungsi showScreen untuk luckyMessageScreen.
+
+            // 6. Cinta Has Something Screen (dengan bubble yang dapat diseret)
+            let isDraggingBubble = false;
+            let startDragX = 0;
+            let initialBubbleX = 0; // Untuk menyimpan posisi X awal bubble saat menyeret dimulai
+
+            dragBubble.addEventListener("pointerdown", (e) => {
+                isDraggingBubble = true;
+                startDragX = e.clientX;
+                const style = window.getComputedStyle(dragBubble);
+                const matrix = new DOMMatrixReadOnly(style.transform);
+                initialBubbleX = matrix.m41; // Dapatkan nilai translateX
+                dragBubble.style.transition = 'none'; // Nonaktifkan transisi untuk respons seret segera
+                dragBubble.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener("pointermove", (e) => { // Dengarkan di dokumen untuk memungkinkan menyeret di luar bubble
+                if (!isDraggingBubble) return;
+
+                const dx = e.clientX - startDragX;
+                const newX = initialBubbleX + dx;
+
+                // Batasi seret ke kanan (atau sedikit ke kiri, tetapi terutama gerakan ke kanan)
+                dragBubble.style.transform = `translateX(${Math.max(0, newX)}px)`;
+
+                // Jika diseret cukup jauh ke kanan, picu layar berikutnya
+                if (newX > minDragDistance) {
+                    isDraggingBubble = false; // Hentikan menyeret
+                    dragBubble.style.transition = 'transform 0.5s ease-out'; // Transisi mulus untuk meluncur keluar
+                    dragBubble.style.transform = `translateX(${window.innerWidth}px)`; // Meluncur keluar layar ke kanan
+                    setTimeout(() => {
+                        showScreen(curiosityQuestionScreen);
+                        // Reset posisi bubble untuk waktu berikutnya mungkin ditampilkan (meskipun tidak mungkin dalam alur ini)
+                        dragBubble.style.transition = 'opacity 0.5s ease, transform 0.5s ease'; // Reset ke default
+                        dragBubble.style.transform = 'translateX(0px)'; // Reset ke posisi awal
+                    }, 500); // Tunggu animasi meluncur keluar
+                }
+            });
+
+            document.addEventListener("pointerup", () => { // Dengarkan di dokumen untuk menangkap rilis di mana saja
+                if (isDraggingBubble) {
+                    isDraggingBubble = false;
+                    // Jika tidak cukup diseret, kembali ke posisi semula
+                    dragBubble.style.transition = 'transform 0.3s ease-out';
+                    dragBubble.style.transform = 'translateX(0px)'; // Kembali ke tengah
+                    dragBubble.style.cursor = 'grab';
+                }
+            });
+
+            // 7. Curiosity Question Screen
+            kepoAjaButton.addEventListener('click', () => {
+                kepoMessage.classList.remove('hidden');
+                kepoMessage.style.animation = 'fadeIn 0.5s forwards';
+                setTimeout(() => {
+                    kepoMessage.style.animation = 'fadeOut 0.5s forwards';
+                    setTimeout(() => kepoMessage.classList.add('hidden'), 500);
+                    // Setelah pesan "yakin ga kepo", tampilkan kartu terakhir
+                    showScreen(happyLevelUpCard);
+                }, 1500); // Tampilkan "yakin ga kepo" selama 1.5 detik
+            });
+
+            kepoBangetButton.addEventListener('click', () => {
+                showScreen(happyLevelUpCard); // Langsung tampilkan kartu terakhir
+            });
+        });
+    </script>
+</body>
+</html>
